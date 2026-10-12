@@ -1,0 +1,210 @@
+<title>Gretna Green Punch List</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap">
+<style>
+/* layout: header + summary, stacked trade sections, add-section form; works without JavaScript for counts and theme */
+@property --p{syntax:'<integer>';inherits:true;initial-value:0}
+:root{--bg:#f4f5f2;--card:#fff;--text:#1d201c;--muted:#61665e;--line:#dfe2db;--ok:#3b7d3e;--el:#9a5c00;--el-bg:#fbefd9;--pl:#1c5fa6;--pl-bg:#e4effa;--sf:#ab2d2c;--sf-bg:#fbe9e8;--cp:#3d6a14;--cp-bg:#e8f2dc;--nu:#5b4a8a;--nu-bg:#eeebf7;--err:#ab2d2c;color-scheme:light;--font:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151714;--card:#20231f;--text:#ecefe8;--muted:#a2a89d;--line:#333830;--ok:#6cc070;--el:#f1b15a;--el-bg:#3a2a10;--pl:#8bbcee;--pl-bg:#11294a;--sf:#f19a99;--sf-bg:#3d1818;--cp:#a8d26e;--cp-bg:#22330f;--nu:#c3b6f0;--nu-bg:#2a2440;--err:#f19a99;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151714;--card:#20231f;--text:#ecefe8;--muted:#a2a89d;--line:#333830;--ok:#6cc070;--el:#f1b15a;--el-bg:#3a2a10;--pl:#8bbcee;--pl-bg:#11294a;--sf:#f19a99;--sf-bg:#3d1818;--cp:#a8d26e;--cp-bg:#22330f;--nu:#c3b6f0;--nu-bg:#2a2440;--err:#f19a99;color-scheme:dark}
+:root:has(#themeT:checked){--bg:#151714;--card:#20231f;--text:#ecefe8;--muted:#a2a89d;--line:#333830;--ok:#6cc070;--el:#f1b15a;--el-bg:#3a2a10;--pl:#8bbcee;--pl-bg:#11294a;--sf:#f19a99;--sf-bg:#3d1818;--cp:#a8d26e;--cp-bg:#22330f;--nu:#c3b6f0;--nu-bg:#2a2440;--err:#f19a99;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):has(#themeT:checked){--bg:#f4f5f2;--card:#fff;--text:#1d201c;--muted:#61665e;--line:#dfe2db;--ok:#3b7d3e;--el:#9a5c00;--el-bg:#fbefd9;--pl:#1c5fa6;--pl-bg:#e4effa;--sf:#ab2d2c;--sf-bg:#fbe9e8;--cp:#3d6a14;--cp-bg:#e8f2dc;--nu:#5b4a8a;--nu-bg:#eeebf7;--err:#ab2d2c;color-scheme:light}}
+:root[data-theme="dark"]:has(#themeT:checked){--bg:#f4f5f2;--card:#fff;--text:#1d201c;--muted:#61665e;--line:#dfe2db;--ok:#3b7d3e;--el:#9a5c00;--el-bg:#fbefd9;--pl:#1c5fa6;--pl-bg:#e4effa;--sf:#ab2d2c;--sf-bg:#fbe9e8;--cp:#3d6a14;--cp-bg:#e8f2dc;--nu:#5b4a8a;--nu-bg:#eeebf7;--err:#ab2d2c;color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.7;direction:ltr}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:grid;gap:24px;counter-reset:done}
+header{order:-3;display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+header .ttl{min-width:0;flex:1 1 260px}
+header h1{font-size:clamp(20px,4vw,26px);font-weight:700;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--muted);font-size:14px}
+.themebtn{display:inline-flex;align-items:center;gap:8px;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap;user-select:none}
+.themebtn input{position:absolute;opacity:0;width:1px;height:1px}
+.themebtn:focus-within{outline:2px solid var(--ok);outline-offset:2px}
+.themebtn .dot{width:14px;height:14px;border-radius:50%;background:var(--text);box-shadow:inset -4px 0 0 var(--card)}
+.stats{order:-2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;--p:calc((var(--c1,0) + var(--c3,0) + var(--c4,0) + var(--c5,0) + var(--c9,0) + var(--c10,0) + var(--c11,0) + var(--c12,0) + var(--c14,0) + var(--c16,0) + var(--c17,0) + var(--c6,0) + var(--c7,0) + var(--c2,0) + var(--c8,0) + var(--c13,0) + var(--c15,0) + var(--c18,0)) * 100 / 18);counter-reset:pct var(--p)}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .k{font-size:13px;color:var(--muted)}
+.stat .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.cnt::before{content:counter(done,decimal)}
+.pct::before{content:counter(pct,decimal) "%"}
+.track{height:6px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden}
+.fill{height:100%;width:calc(var(--p) * 1%);background:var(--ok);transition:width .3s}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (min-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wide{grid-column:1/-1}.wide .list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.group{min-width:0;display:grid;gap:8px;align-content:start}
+.group h2{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;margin:0;padding:8px 12px;border-radius:10px;background:var(--nu-bg);color:var(--nu)}
+.group h2 .n{margin-left:auto;font-size:12px;font-weight:500;white-space:nowrap}
+.el h2{background:var(--el-bg);color:var(--el)}.pl h2{background:var(--pl-bg);color:var(--pl)}
+.sf h2{background:var(--sf-bg);color:var(--sf)}.cp h2{background:var(--cp-bg);color:var(--cp)}
+.list{display:grid;gap:8px}
+label.task{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;min-width:0}
+label.task input{width:18px;height:18px;margin-top:4px;flex-shrink:0;accent-color:var(--ok)}
+label.task input:checked{counter-increment:done}
+label.task:focus-within{outline:2px solid var(--ok);outline-offset:1px}
+.body{min-width:0;flex:1}
+.num{font-size:12px;color:var(--muted);min-width:22px;margin-top:3px;font-variant-numeric:tabular-nums}
+.t{font-size:15px;overflow-wrap:anywhere}
+.loc{font-size:12px;color:var(--muted)}
+label.task:has(input:checked) .t{text-decoration:line-through;color:var(--muted)}
+.x{font-family:inherit;font-size:12px;color:var(--muted);background:none;border:1px solid transparent;border-radius:6px;padding:2px 8px;cursor:pointer;flex-shrink:0}
+.x:hover,.x:focus-visible{border-color:var(--line);color:var(--err)}
+.x.ask{color:var(--err);border-color:var(--err)}
+form{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+form input{font-family:inherit;font-size:14px;flex:1 1 140px;min-width:0;background:var(--card);color:var(--text);border:1px dashed var(--line);border-radius:8px;padding:7px 10px}
+form input:focus{outline:2px solid var(--ok);border-style:solid}
+button{font-family:inherit;font-size:14px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ok)}
+.err{flex-basis:100%;margin:0;font-size:13px;color:var(--err)}
+.addsec{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
+.addsec h3{margin:0;font-size:15px;font-weight:700}
+.jsonly{display:none}
+.js .jsonly{display:flex}
+.js .addsec.jsonly{display:grid}
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+:root:has(#t1:checked){--c1:1}
+:root:has(#t3:checked){--c3:1}
+:root:has(#t4:checked){--c4:1}
+:root:has(#t5:checked){--c5:1}
+:root:has(#t9:checked){--c9:1}
+:root:has(#t10:checked){--c10:1}
+:root:has(#t11:checked){--c11:1}
+:root:has(#t12:checked){--c12:1}
+:root:has(#t14:checked){--c14:1}
+:root:has(#t16:checked){--c16:1}
+:root:has(#t17:checked){--c17:1}
+:root:has(#t6:checked){--c6:1}
+:root:has(#t7:checked){--c7:1}
+:root:has(#t2:checked){--c2:1}
+:root:has(#t8:checked){--c8:1}
+:root:has(#t13:checked){--c13:1}
+:root:has(#t15:checked){--c15:1}
+:root:has(#t18:checked){--c18:1}
+</style>
+<div class="wrap">
+<header>
+<div class="ttl"><h1>Remaining tasks: Gretna Green project</h1><p id="sub">18 tasks across 4 trades. Each number matches the original list.</p></div>
+<label class="themebtn"><input type="checkbox" id="themeT"><span class="dot" aria-hidden="true"></span>Dark / light</label>
+</header>
+
+<div class="grid" id="grid">
+<section class="group el wide" data-sec="el"><h2><span class="nm">Electrical and low voltage</span><span class="n" data-count>11 tasks</span></h2><div class="list">
+<label class="task"><input type="checkbox" id="t1"><span class="num">1</span><div class="body"><div class="t">Install one electrical outlet under the window</div><div class="loc">First-floor room</div></div></label>
+<label class="task"><input type="checkbox" id="t3"><span class="num">3</span><div class="body"><div class="t">Check and correct the electrical panel location</div><div class="loc">Entry bathroom</div></div></label>
+<label class="task"><input type="checkbox" id="t4"><span class="num">4</span><div class="body"><div class="t">Separate the refrigerator and freezer circuits</div><div class="loc">Kitchen</div></div></label>
+<label class="task"><input type="checkbox" id="t5"><span class="num">5</span><div class="body"><div class="t">Run four conductors and install a dedicated breaker</div><div class="loc">Kitchen island</div></div></label>
+<label class="task"><input type="checkbox" id="t9"><span class="num">9</span><div class="body"><div class="t">Install the stairway lighting system</div><div class="loc">Stairway</div></div></label>
+<label class="task"><input type="checkbox" id="t10"><span class="num">10</span><div class="body"><div class="t">Install outlets for the waterfall, BBQ, and other needed points</div><div class="loc">Yard</div></div></label>
+<label class="task"><input type="checkbox" id="t11"><span class="num">11</span><div class="body"><div class="t">Review and provide the BBQ electrical and utility requirements</div><div class="loc">Yard</div></div></label>
+<label class="task"><input type="checkbox" id="t12"><span class="num">12</span><div class="body"><div class="t">Run low-voltage wiring under the bathroom platform</div><div class="loc">Bathroom</div></div></label>
+<label class="task"><input type="checkbox" id="t14"><span class="num">14</span><div class="body"><div class="t">Verify all installed wall and yard lights work properly</div><div class="loc">Interior and yard</div></div></label>
+<label class="task"><input type="checkbox" id="t16"><span class="num">16</span><div class="body"><div class="t">Run a power feed for the yard ceiling lights</div><div class="loc">Level -1</div></div></label>
+<label class="task"><input type="checkbox" id="t17"><span class="num">17</span><div class="body"><div class="t">Install an outlet for the water heater</div><div class="loc">Yard, level -1</div></div></label>
+</div>
+<form class="addtask jsonly" autocomplete="off"><input name="t" placeholder="Task description" aria-label="Task description"><input name="l" placeholder="Location (optional)" aria-label="Location (optional)"><button type="submit">+ Add task</button><p class="err" hidden>Enter a task description.</p></form>
+</section>
+<section class="group pl" data-sec="pl"><h2><span class="nm">Plumbing</span><span class="n" data-count>2 tasks</span></h2><div class="list">
+<label class="task"><input type="checkbox" id="t6"><span class="num">6</span><div class="body"><div class="t">Install the vent pipe</div><div class="loc">Kitchen island</div></div></label>
+<label class="task"><input type="checkbox" id="t7"><span class="num">7</span><div class="body"><div class="t">Provide for a garbage disposal</div><div class="loc">Kitchen island</div></div></label>
+</div>
+<form class="addtask jsonly" autocomplete="off"><input name="t" placeholder="Task description" aria-label="Task description"><input name="l" placeholder="Location (optional)" aria-label="Location (optional)"><button type="submit">+ Add task</button><p class="err" hidden>Enter a task description.</p></form>
+</section>
+<section class="group sf" data-sec="sf"><h2><span class="nm">Fire and life safety</span><span class="n" data-count>2 tasks</span></h2><div class="list">
+<label class="task"><input type="checkbox" id="t2"><span class="num">2</span><div class="body"><div class="t">Firestop around pipes and the floor joint at the shared wall</div><div class="loc">Upstairs bathrooms</div></div></label>
+<label class="task"><input type="checkbox" id="t8"><span class="num">8</span><div class="body"><div class="t">Install a smoke detector downstairs and relocate the upstairs one</div><div class="loc">Hallways</div></div></label>
+</div>
+<form class="addtask jsonly" autocomplete="off"><input name="t" placeholder="Task description" aria-label="Task description"><input name="l" placeholder="Location (optional)" aria-label="Location (optional)"><button type="submit">+ Add task</button><p class="err" hidden>Enter a task description.</p></form>
+</section>
+<section class="group cp wide" data-sec="cp"><h2><span class="nm">Framing and carpentry</span><span class="n" data-count>3 tasks</span></h2><div class="list">
+<label class="task"><input type="checkbox" id="t13"><span class="num">13</span><div class="body"><div class="t">Install wood blocking for the mirror</div><div class="loc">Master suite</div></div></label>
+<label class="task"><input type="checkbox" id="t15"><span class="num">15</span><div class="body"><div class="t">Build a reinforcing frame to carry the BBQ stone</div><div class="loc">Yard</div></div></label>
+<label class="task"><input type="checkbox" id="t18"><span class="num">18</span><div class="body"><div class="t">Frame the bathroom door</div><div class="loc">Bathroom</div></div></label>
+</div>
+<form class="addtask jsonly" autocomplete="off"><input name="t" placeholder="Task description" aria-label="Task description"><input name="l" placeholder="Location (optional)" aria-label="Location (optional)"><button type="submit">+ Add task</button><p class="err" hidden>Enter a task description.</p></form>
+</section>
+</div>
+
+<div class="stats" id="stats">
+<div class="stat"><div class="k">Completed</div><div class="v"><span class="cnt"></span> of <span id="total">18</span></div></div>
+<div class="stat"><div class="k">Progress</div><div class="v"><span class="pct"></span></div><div class="track"><div class="fill"></div></div></div>
+</div>
+
+<form class="addsec jsonly" id="addsec" autocomplete="off">
+<h3>+ Add a new section</h3>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><input id="secname" name="s" placeholder="Section name, e.g. Tile and stone" aria-label="Section name, e.g. Tile and stone"><button type="submit">Add</button></div>
+<p class="err" hidden>Enter a section name.</p>
+</form>
+
+<div class="foot">
+<span>Checkmarks and added items are saved on this device only.</span>
+<button id="reset" type="button">Clear checkmarks</button>
+</div>
+</div>
+<script>
+(function(){
+var KEY='gretna-en',FA=false,I={"addTask": "Add task", "taskPh": "Task description", "locPh": "Location (optional)", "addBtn": "Add", "dl": "Delete", "delQ": "Delete?", "tasks": "tasks", "errTask": "Enter a task description.", "errSec": "Enter a section name.", "pctSign": "%"};
+function fa(n){n=String(n);return FA?n.replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d]}):n}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function save(st){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+var st=load();st.checks=st.checks||{};st.sections=st.sections||[];st.tasks=st.tasks||[];st.next=st.next||19;
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function taskHTML(x){return '<label class="task" data-custom="1"><input type="checkbox" id="'+x.id+'"><span class="num">'+fa(x.n)+'</span><div class="body"><div class="t">'+esc(x.t)+'</div>'+(x.l?'<div class="loc">'+esc(x.l)+'</div>':'')+'</div><button type="button" class="x" data-del-task="'+x.id+'">'+I.dl+'</button></label>'}
+function secHTML(s){return '<section class="group" data-sec="'+s.id+'" data-custom="1"><h2><span class="nm">'+esc(s.name)+'</span><span class="n" data-count></span><button type="button" class="x" data-del-sec="'+s.id+'">'+I.dl+'</button></h2><div class="list"></div><form class="addtask jsonly" autocomplete="off"><input name="t" placeholder="'+I.taskPh+'" aria-label="'+I.taskPh+'"><input name="l" placeholder="'+I.locPh+'" aria-label="'+I.locPh+'"><button type="submit">+ '+I.addTask+'</button><p class="err" hidden>'+I.errTask+'</p></form></section>'}
+function render(){
+  $$('[data-custom]').forEach(function(n){n.remove()});
+  var grid=$('#grid');
+  st.sections.forEach(function(s){grid.insertAdjacentHTML('beforeend',secHTML(s))});
+  st.tasks.forEach(function(x){var sec=$('[data-sec="'+x.sec+'"] .list');if(sec)sec.insertAdjacentHTML('beforeend',taskHTML(x))});
+  $$('label.task input').forEach(function(b){b.checked=!!st.checks[b.id]});
+  update();
+}
+function update(){
+  var bs=$$('label.task input'),c=0;st.checks={};
+  bs.forEach(function(b){if(b.checked){c++;st.checks[b.id]=1}});
+  var p=bs.length?Math.round(c/bs.length*100):0;
+  var stats=$('#stats');if(stats)stats.style.setProperty('--p',p);
+  var tot=$('#total');if(tot)tot.textContent=fa(bs.length);
+  $$('.group').forEach(function(g){var k=$('[data-count]',g);if(k)k.textContent=fa($$('label.task',g).length)+' '+I.tasks});
+  save(st);
+}
+function init(){
+  document.documentElement.classList.add('js');
+  try{var th=localStorage.getItem(KEY+'-theme');if(th!==null)$('#themeT').checked=th==='1'}catch(e){}
+  render();
+}
+if(!window.__gretnaBound){
+  window.__gretnaBound=true;
+  document.addEventListener('change',function(e){
+    var el=e.target;if(!el)return;
+    if(el.id==='themeT'){try{localStorage.setItem(KEY+'-theme',el.checked?'1':'0')}catch(_){}return}
+    if(el.matches('label.task input'))update();
+  });
+  document.addEventListener('input',function(e){var f=e.target&&e.target.closest&&e.target.closest('form');if(f){var er=$('.err',f);if(er)er.hidden=true}});
+  document.addEventListener('submit',function(e){
+    var f=e.target;e.preventDefault();
+    if(f.id==='addsec'){
+      var nm=f.s.value.trim();if(!nm){$('.err',f).hidden=false;return}
+      st.sections.push({id:'s'+Date.now(),name:nm});f.reset();render();return;
+    }
+    if(f.classList.contains('addtask')){
+      var tx=f.t.value.trim();if(!tx){$('.err',f).hidden=false;return}
+      var sec=f.closest('.group').getAttribute('data-sec');
+      st.tasks.push({id:'u'+Date.now(),sec:sec,t:tx,l:f.l.value.trim(),n:st.next++});f.reset();render();
+    }
+  });
+  document.addEventListener('click',function(e){
+    var el=e.target;if(!el||!el.closest)return;
+    if(el.id==='reset'){$$('label.task input').forEach(function(b){b.checked=false});update();return}
+    var x=el.closest('.x');if(!x)return;
+    e.preventDefault();
+    if(!x.classList.contains('ask')){x.classList.add('ask');x.textContent=I.delQ;setTimeout(function(){if(x.isConnected){x.classList.remove('ask');x.textContent=I.dl}},3000);return}
+    var tid=x.getAttribute('data-del-task'),sid=x.getAttribute('data-del-sec');
+    if(tid)st.tasks=st.tasks.filter(function(t){return t.id!==tid});
+    if(sid){st.sections=st.sections.filter(function(s){return s.id!==sid});st.tasks=st.tasks.filter(function(t){return t.sec!==sid})}
+    render();
+  });
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
